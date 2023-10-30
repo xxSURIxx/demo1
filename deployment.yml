@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: my-pod1  
+  template: 
+    metadata:
+      labels:
+        name: my-pod1
+    spec: 
+      containers:
+        - name: my-container
+          image: xxsurixx/jenkins:v1
+          ports:
+            - containerPort: 80    
+
+        
