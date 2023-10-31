@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from the GitHub repository
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/xxSURIxx/demo1.git']]])
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                // Build the Docker image with the code
+                script {
+                    sh "docker build -t jenkins-assignment:v1 ."
+                    sh "docker tag jenkins-assignment:v1 xxsurixx/jenkins-assignment:v1"
+                }
+            }
+        }
+
+        stage('Push to Docker Registry') {
+            steps {
+                // Push the Docker image to a private registry (e.g., Docker Hub, ECR, GCR, ACR)
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker_cred', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD"
+                        sh "docker push xxsurixx/jenkins-assignment:v1"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh "sudo -u sigmoid kubectl apply -f deployment.yml"
+                }
+            }
+        }
+
+        stage('List Images and Pods') {
+            steps {
+                script {
+                    sh "docker images"
+                    sh "sudo -u sigmoid kubectl get deployments"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            emailext subject: 'Pipeline Successful',
+            body: 'Your Jenkins pipeline has completed successfully.',
+            to: 'suryanshurai05@gmail.com'
+        }
+        failure {
+            emailext subject: "Pipeline Failed",
+            body: "Your Jenkins pipeline has failed.",
+            to: "suryanshurai05@gmail.com"
+        }
+    }
+}
