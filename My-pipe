@@ -1,13 +1,12 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                // Checkout the code from the GitHub repository
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], credentialsId: 'github', userRemoteConfigs: [[url: 'https://github.com/xxSURIxx/demo1.git']]])
-            }
-        }
+    stage('Checkout') {
+    steps {
+        // Checkout the code from the GitHub repository using the 'github' credentials
+        checkout([$class: 'GitSCM', branches: [[name: '*/main']], credentialsId: 'github', userRemoteConfigs: [[url: 'https://github.com/xxSURIxx/demo1.git']]])
+    }
+}
 
         stage('Build Docker Image') {
             steps {
